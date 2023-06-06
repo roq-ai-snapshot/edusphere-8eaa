@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model course {
+  id                         String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                       String                  @db.VarChar(255)
+  educational_institution_id String                  @db.Uuid
+  educational_institution    educational_institution @relation(fields: [educational_institution_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  learning_path              learning_path[]
+}
+
+model educational_institution {
+  id                   String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                 String                 @db.VarChar(255)
+  user_id              String                 @db.Uuid
+  course               course[]
+  user                 user                   @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  school_administrator school_administrator[]
+  student_support      student_support[]
+  teacher              teacher[]
+}
+
+model learning_path {
+  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String     @db.VarChar(255)
+  course_id String     @db.Uuid
+  course    course     @relation(fields: [course_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  progress  progress[]
+  student   student[]
+}
+
+model parent {
+  id         String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String  @db.Uuid
+  student_id String  @db.Uuid
+  student    student @relation(fields: [student_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user       user    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model progress {
+  id                    String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  student_id            String        @db.Uuid
+  learning_path_id      String        @db.Uuid
+  completion_percentage Int
+  learning_path         learning_path @relation(fields: [learning_path_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  student               student       @relation(fields: [student_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model school_administrator {
+  id                         String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                    String                  @db.Uuid
+  educational_institution_id String                  @db.Uuid
+  educational_institution    educational_institution @relation(fields: [educational_institution_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user                       user                    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model student {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id          String        @db.Uuid
+  learning_path_id String        @db.Uuid
+  parent           parent[]
+  progress         progress[]
+  learning_path    learning_path @relation(fields: [learning_path_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user             user          @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model student_support {
+  id                         String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                    String                  @db.Uuid
+  educational_institution_id String                  @db.Uuid
+  educational_institution    educational_institution @relation(fields: [educational_institution_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user                       user                    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model teacher {
+  id                         String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                    String                  @db.Uuid
+  educational_institution_id String                  @db.Uuid
+  educational_institution    educational_institution @relation(fields: [educational_institution_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user                       user                    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model user {
+  id                      String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                   String                    @unique @db.VarChar(255)
+  firstName               String?                   @db.VarChar(255)
+  lastName                String?                   @db.VarChar(255)
+  roq_user_id             String                    @db.VarChar(255)
+  tenant_id               String                    @db.VarChar(255)
+  educational_institution educational_institution[]
+  parent                  parent[]
+  school_administrator    school_administrator[]
+  student                 student[]
+  student_support         student_support[]
+  teacher                 teacher[]
+}
